@@ -1,0 +1,26 @@
+# .github/workflows/deploy.yml
+name: Deploy
+
+on:
+  repository_dispatch:
+    types: [trigger-deploy]  # Event type triggered from the previous workflow
+
+# on:
+#     workflow_run:
+#       workflows: ["CI Unit tests"] # Name of the first workflow
+#       types:
+#         - completed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }} 
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy application
+        run: |
+          echo "Deploying application..."
+          # Add your deployment steps here
