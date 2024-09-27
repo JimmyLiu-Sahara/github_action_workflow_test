@@ -16,8 +16,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Trigger Deploy Workflow
-        run: |
-          gh workflow run trigger_deploy.yml --ref main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Trigger Deploy Workflow
+      #   run: |
+      #     gh workflow run trigger_deploy.yml --ref main
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
