@@ -1,15 +1,15 @@
 # .github/workflows/deploy.yml
 name: Deploy
 
-on:
-  repository_dispatch:
-    types: [trigger-deploy]  # Event type triggered from the previous workflow
-
 # on:
-#     workflow_run:
-#       workflows: ["CI Unit tests"] # Name of the first workflow
-#       types:
-#         - completed
+#   repository_dispatch:
+#     types: [trigger-deploy]  # Event type triggered from the previous workflow
+
+on:
+    workflow_run:
+      workflows: ["CI Unit tests"] # Name of the first workflow
+      types:
+        - completed
 
 jobs:
   deploy:
