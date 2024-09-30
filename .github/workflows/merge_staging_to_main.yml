@@ -24,8 +24,12 @@ jobs:
         run: |
           echo "Generating diff..."
           git diff origin/main origin/staging > diff_output.txt
-          # Write the diff output to an environment file instead of using set-output
-          echo "DIFF_OUTPUT=$(cat diff_output.txt)" >> $GITHUB_ENV
+
+      - name: Upload diff output as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: diff-output
+          path: diff_output.txt
 
       - name: Wait for approval
         run: |
@@ -41,11 +45,8 @@ jobs:
           minimum-approvals: 1
           issue-title: "Deploying changes to prod from staging"
           issue-body: |
-            Please approve or deny the deployment.
-
-            ### Changes:
-            ```diff
-            ${{ env.DIFF_OUTPUT }}  # Include the full diff output from the environment variable
+            ```
+            Please review https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} to approve/deny the deployment
             ```
           exclude-workflow-initiator-as-approver: false
           additional-approved-words: ''
