@@ -1,45 +1,50 @@
 name: Manual Merge from Staging to Main
 
 on:
-  workflow_dispatch: # This allows the workflow to be triggered manually
+  workflow_dispatch: # Manually triggered action
 
 jobs:
-  check-diff-and-merge:
+  create-pr-and-merge:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write # Required for merging changes
-      pull-requests: write
+      contents: write # Needed to create PR and push changes
+      pull-requests: write # Needed to create PR and merge it
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0 # Ensure the full history is fetched for diff/merge operations
+          fetch-depth: 0 # Fetch full history for git operations
 
       - name: Fetch all branches
         run: git fetch --all
 
-      - name: Show diff between main and staging
-        run: git diff origin/main...origin/staging
-
-      - name: Request approval
-        uses: hmarr/auto-approve-action@v2.1.0 # Using an action to require approval
+      - name: Create Pull Request from Staging to Main
+        uses: peter-evans/create-pull-request@v5
         with:
-          approvers: JimmyLiu-Sahara  # Add GitHub usernames of approvers
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base: main
+          head: staging
+          title: "Merge Staging to Main"
+          body: "This PR merges the staging branch into the main branch."
+          draft: false # Set to false to directly create the PR
+
+      - name: Wait for PR Approval
+        uses: flybayer/wait-for-approval-action@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pr: ${{ steps.create-pull-request.outputs.pull-request-number }}
+          approval-count: 1 # The number of approvals needed
+
+      - name: Merge the Pull Request
+        run: |
+          PR_NUMBER=${{ steps.create-pull-request.outputs.pull-request-number }}
+          gh pr merge $PR_NUMBER --repo ${{ github.repository }} --merge --admin --ff
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Wait for approval (approval gate)
-        uses: mothership-ec/delay-action@v2.0.0
-        with:
-          delay-minutes: 10 # Wait 10 minutes for manual approval from reviewers
-
-      - name: Merge staging into main with fast-forward
-        run: |
-          git checkout main
-          git pull origin main
-          git merge --ff-only origin/staging
-          git push origin main
+      - name: Push Merged Changes
+        run: git push origin main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
