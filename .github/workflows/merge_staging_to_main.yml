@@ -1,4 +1,7 @@
 name: Merge Staging to Main with Fast-Forward
+permissions:
+  issues: write  # Grants write access to issues
+  contents: read  # Grants read-only access to the repository contents
 
 on:
   workflow_dispatch: # Triggered manually
