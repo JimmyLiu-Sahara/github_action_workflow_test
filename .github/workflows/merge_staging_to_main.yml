@@ -7,9 +7,6 @@ jobs:
   merge-with-approval:
     runs-on: ubuntu-latest
 
-    # Define the environment and require approval
-    environment: main
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -28,7 +25,18 @@ jobs:
           # The merge will be blocked until approval is granted via branch protection rules
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+  
+      - uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ github.TOKEN }}
+          approvers: JimmyLiu-Sahara
+          minimum-approvals: 1
+          issue-title: "Deploying changes to prod from staging"
+          issue-body: "Please approve or deny the deployment."
+          exclude-workflow-initiator-as-approver: false
+          additional-approved-words: ''
+          additional-denied-words: ''
+      
       - name: Perform Fast-Forward Merge
         run: |
           git checkout main
