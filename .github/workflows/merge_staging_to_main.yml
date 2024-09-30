@@ -24,7 +24,8 @@ jobs:
         run: |
           echo "Generating diff..."
           git diff origin/main origin/staging > diff_output.txt
-          echo "::set-output name=diff::$(cat diff_output.txt)"  # Store the diff in an output variable
+          # Write the diff output to an environment file instead of using set-output
+          echo "DIFF_OUTPUT=$(cat diff_output.txt)" >> $GITHUB_ENV
 
       - name: Wait for approval
         run: |
@@ -44,7 +45,7 @@ jobs:
 
             ### Changes:
             ```diff
-            ${{ steps.show_diff.outputs.diff }}  # Include the diff output
+            ${{ env.DIFF_OUTPUT }}  # Include the full diff output from the environment variable
             ```
           exclude-workflow-initiator-as-approver: false
           additional-approved-words: ''
