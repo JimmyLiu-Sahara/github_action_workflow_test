@@ -24,12 +24,13 @@ jobs:
         run: |
           echo "Generating diff..."
           git diff origin/main origin/staging > diff_output.txt
+          zip diff_output.zip diff_output.txt
 
       - name: Upload diff output as artifact
         uses: actions/upload-artifact@v3
         with:
-          name: diff-output.txt
-          path: diff_output.txt
+          name: diff-output.zip
+          path: diff_output.zip
 
       - name: Wait for approval
         run: |
