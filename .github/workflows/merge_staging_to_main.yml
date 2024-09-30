@@ -19,19 +19,19 @@ jobs:
       - name: Fetch all branches
         run: git fetch --all
 
-      - name: Show diff between main and staging
-        id: show_diff
+      - name: Get last commit hash from staging
+        id: get_last_commit
         run: |
-          echo "Generating diff..."
-          git diff origin/main origin/staging > diff_output.txt
-          zip diff_output.zip diff_output.txt
+          # Fetch the latest commit hash from the staging branch
+          LAST_COMMIT_HASH=$(git rev-parse origin/staging)
+          echo "Last commit hash: $LAST_COMMIT_HASH"
 
-      - name: Upload diff output as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: diff-output
-          path: diff-output.txt
+          # Create the commit URL
+          COMMIT_URL="https://github.com/${{ github.repository }}/commit/$LAST_COMMIT_HASH"
+          echo "Commit URL: $COMMIT_URL"
 
+          # Set the commit URL as an output for further steps
+          echo "::set-output name=commit_url::$COMMIT_URL"
 
       - name: Wait for approval
         run: |
@@ -47,9 +47,8 @@ jobs:
           minimum-approvals: 1
           issue-title: "Deploying changes to prod from staging"
           issue-body: |
-            ```
-            Please review https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} to approve/deny the deployment
-            ```
+            Please review ${{ steps.get_last_commit.outputs.COMMIT_URL }} to approve/deny the deployment
+
           exclude-workflow-initiator-as-approver: false
           additional-approved-words: ''
           additional-denied-words: ''
