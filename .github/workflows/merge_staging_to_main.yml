@@ -20,22 +20,32 @@ jobs:
         run: git fetch --all
 
       - name: Show diff between main and staging
-        run: git diff origin/main origin/staging
+        id: show_diff
+        run: |
+          echo "Generating diff..."
+          git diff origin/main origin/staging > diff_output.txt
+          echo "::set-output name=diff::$(cat diff_output.txt)"  # Store the diff in an output variable
 
       - name: Wait for approval
         run: |
           echo "Waiting for approval to merge staging into main."
-          # The merge will be blocked until approval is granted via branch protection rules
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  
-      - uses: trstringer/manual-approval@v1
+
+      - name: Create Approval Issue
+        uses: trstringer/manual-approval@v1
         with:
-          secret: ${{ github.TOKEN }}
+          secret: ${{ secrets.GITHUB_TOKEN }}  # Use the correct token for access
           approvers: "${{ github.actor }}" 
           minimum-approvals: 1
           issue-title: "Deploying changes to prod from staging"
-          issue-body: "Please approve or deny the deployment."
+          issue-body: |
+            Please approve or deny the deployment.
+
+            ### Changes:
+            ```diff
+            ${{ steps.show_diff.outputs.diff }}  # Include the diff output
+            ```
           exclude-workflow-initiator-as-approver: false
           additional-approved-words: ''
           additional-denied-words: ''
