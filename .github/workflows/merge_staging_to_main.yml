@@ -1,0 +1,45 @@
+name: Manual Merge from Staging to Main
+
+on:
+  workflow_dispatch: # This allows the workflow to be triggered manually
+
+jobs:
+  check-diff-and-merge:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write # Required for merging changes
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Ensure the full history is fetched for diff/merge operations
+
+      - name: Fetch all branches
+        run: git fetch --all
+
+      - name: Show diff between main and staging
+        run: git diff origin/main...origin/staging
+
+      - name: Request approval
+        uses: hmarr/auto-approve-action@v2.1.0 # Using an action to require approval
+        with:
+          approvers: JimmyLiu-Sahara  # Add GitHub usernames of approvers
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Wait for approval (approval gate)
+        uses: mothership-ec/delay-action@v2.0.0
+        with:
+          delay-minutes: 10 # Wait 10 minutes for manual approval from reviewers
+
+      - name: Merge staging into main with fast-forward
+        run: |
+          git checkout main
+          git pull origin main
+          git merge --ff-only origin/staging
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
