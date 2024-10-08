@@ -50,7 +50,7 @@ jobs:
           minimum-approvals: 1
           issue-title: "Deploying changes to prod from staging"
           issue-body: |
-            Please review $COMPARISON_URL to approve/deny the deployment
+            Please review ${{ env.COMPARISON_URL }} to approve/deny the deployment
 
           exclude-workflow-initiator-as-approver: false
           additional-approved-words: ''
