@@ -1,7 +1,7 @@
 name: Merge Staging to Main with Fast-Forward
 permissions:
   issues: write  # Grants write access to issues
-  contents: write  # Grants read-only access to the repository contents
+  contents: write  # Grants write access to the repository contents
 
 on:
   workflow_dispatch: # Triggered manually
@@ -22,16 +22,19 @@ jobs:
       - name: Get last commit hash from staging
         id: get_last_commit
         run: |
-          # Fetch the latest commit hash from the staging branch
-          LAST_COMMIT_HASH=$(git rev-parse origin/staging)
+          # Get the latest commit hash for each branch
+          STAGING_COMMIT=$(git rev-parse origin/staging)
+          MAIN_COMMIT=$(git rev-parse origin/main)
           echo "Last commit hash: $LAST_COMMIT_HASH"
 
-          # Create the commit URL
-          COMMIT_URL="https://github.com/${{ github.repository }}/commit/$LAST_COMMIT_HASH"
-          echo "Commit URL: $COMMIT_URL"
+          # Create the comparison URL
+          COMPARISON_URL=https://github.com/${{ github.repository }}/compare/$MAIN_COMMIT...$STAGING_COMMIT
+          echo "Comparison URL: $COMPARISON_URL"
 
-          # Set the commit URL as an output for further steps
-          echo "::set-output name=commit_url::$COMMIT_URL"
+          # Set variables in the GitHub environment
+          echo "STAGING_COMMIT=$STAGING_COMMIT" >> $GITHUB_ENV
+          echo "MAIN_COMMIT=$MAIN_COMMIT" >> $GITHUB_ENV
+          echo "COMPARISON_URL=$COMPARISON_URL" >> $GITHUB_ENV
 
       - name: Wait for approval
         run: |
@@ -47,7 +50,7 @@ jobs:
           minimum-approvals: 1
           issue-title: "Deploying changes to prod from staging"
           issue-body: |
-            Please review ${{ steps.get_last_commit.outputs.COMMIT_URL }} to approve/deny the deployment
+            Please review $COMPARISON_URL to approve/deny the deployment
 
           exclude-workflow-initiator-as-approver: false
           additional-approved-words: ''
